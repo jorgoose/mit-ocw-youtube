@@ -258,23 +258,6 @@ func extractCourseMetadata(apiKey, html string) (CourseInfo, error) {
 						},
 						"taxonomy": {
 							Type: genai.TypeString,
-							Enum: []string{
-								"Biological Sciences",
-								"Business and Management",
-								"Chemistry",
-								"Computer Science",
-								"Design",
-								"Economics",
-								"Political Science",
-								"Physics",
-								"Mathematics",
-								"Sociology",
-								"Statistics",
-								"Literature",
-								"History",
-								"Philosophy",
-								"Other",
-							},
 						},
 					},
 					Required: []string{"url", "title", "view_count"},
@@ -291,6 +274,7 @@ Extract course metadata from the following HTML:
    - Video title
    - URL (starting with /watch?v=)
    - View count (as integer, remove "views" text)
+   - Taxonomy (choose from the following: Biological Sciences, Business and Management, Chemistry, Computer Science, Design, Economics, Political Science, Physics, Mathematics, Sociology, Statistics, Literature, History, Philosophy, Other)
 
 Return as JSON:
 {
