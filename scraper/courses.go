@@ -22,7 +22,7 @@ type VideoInfo struct {
 	URL       string `json:"url"`
 	Title     string `json:"title"`
 	ViewCount int    `json:"view_count"`
-	Position  int    `json:"position"` // New field
+	Position  int    `json:"position"`
 	Taxonomy  string `json:"taxonomy"`
 }
 
