@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -11,9 +12,12 @@ import (
 )
 
 func main() {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+	// Load .env file if it exists (won't error in GitHub Actions)
+	_ = godotenv.Load()
+
+	// Check if required environment variable is set
+	if os.Getenv("GEMINI_API_KEY") == "" {
+		log.Fatal("GEMINI_API_KEY environment variable must be set")
 	}
 
 	// Get course info
