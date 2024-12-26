@@ -108,9 +108,16 @@ func GetCourseInfo() ([]CourseInfo, error) {
 	rateLimiter := time.NewTicker(4 * time.Second)
 	defer rateLimiter.Stop()
 
-	for _, playlist := range urls {
+	totalPlaylists := len(urls)
+	log.Printf("Starting to process %d playlists...", totalPlaylists)
+
+	for i, playlist := range urls {
 		// Wait for rate limit
 		<-rateLimiter.C
+
+		progress := float64(i) / float64(totalPlaylists) * 100
+		log.Printf("Processing playlist %d/%d (%.1f%%): %s",
+			i+1, totalPlaylists, progress, playlist.URL)
 
 		var retries int
 		const maxRetries = 3
@@ -120,7 +127,8 @@ func GetCourseInfo() ([]CourseInfo, error) {
 				if strings.Contains(err.Error(), "429") && retries < maxRetries {
 					retries++
 					waitTime := time.Duration(retries*4) * time.Second
-					log.Printf("Rate limit hit, waiting %v seconds before retry %d/%d", waitTime.Seconds(), retries, maxRetries)
+					log.Printf("Rate limit hit, waiting %v seconds before retry %d/%d",
+						waitTime.Seconds(), retries, maxRetries)
 					time.Sleep(waitTime)
 					continue
 				}
@@ -128,11 +136,13 @@ func GetCourseInfo() ([]CourseInfo, error) {
 				break
 			}
 			courses = append(courses, courseInfo)
-			log.Printf("Processed playlist: %s with %d videos", courseInfo.Title, len(courseInfo.Videos))
+			log.Printf("Successfully processed playlist %d/%d: %s (%d videos)",
+				i+1, totalPlaylists, courseInfo.Title, len(courseInfo.Videos))
 			break
 		}
 	}
 
+	log.Printf("Completed processing %d/%d playlists", len(courses), totalPlaylists)
 	return courses, nil
 }
 
