@@ -63,7 +63,7 @@ jobs:
           {
             "title": "MIT OpenCourseWare YouTube Course Data",
             "id": "jorgoose/mit-opencourseware-youtube-course-data",
-            "licenses": [{"name": "CC0-1.0"}],
+            "licenses": [{"name": "apache-2.0"}],
             "keywords": [
               "education",
               "mit",
