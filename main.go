@@ -20,6 +20,11 @@ func main() {
 		log.Fatal("GEMINI_API_KEY environment variable must be set")
 	}
 
+	// Check for Kaggle credentials
+	if os.Getenv("KAGGLE_USERNAME") == "" || os.Getenv("KAGGLE_KEY") == "" {
+		log.Fatal("KAGGLE_USERNAME and KAGGLE_KEY environment variables must be set")
+	}
+
 	// Get course info
 	courses, err := scraper.GetCourseInfo()
 	if err != nil {
