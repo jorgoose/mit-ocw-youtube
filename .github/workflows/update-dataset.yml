@@ -62,6 +62,7 @@ jobs:
           cat << EOF > dataset-metadata.json
           {
             "title": "MIT OpenCourseWare YouTube Course Data",
+            "subtitle": "Daily updated details for course videos on MIT OpenCourseWare's YouTube channel",
             "id": "jorgoose/mit-opencourseware-youtube-course-data",
             "licenses": [{"name": "apache-2.0"}],
             "keywords": [
