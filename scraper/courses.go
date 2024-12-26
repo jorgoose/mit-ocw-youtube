@@ -101,7 +101,7 @@ func GetCourseInfo() ([]CourseInfo, error) {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 80*time.Minute)
 	defer cancel()
 
 	var courses []CourseInfo
