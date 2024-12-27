@@ -51,7 +51,7 @@ func GetPlaylistURLs() ([]PlaylistURL, error) {
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(`https://www.youtube.com/@mitocw/courses?app=desktop`),
-		chromedp.Sleep(3*time.Second),
+		chromedp.Sleep(2*time.Second),
 		extractPlaylistURLs(&urls),
 	)
 	if err != nil {
@@ -98,47 +98,82 @@ func GetCourseInfo() ([]CourseInfo, error) {
 		return nil, fmt.Errorf("GEMINI_API_KEY environment variable not set")
 	}
 
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	// Create a channel for results
+	results := make(chan struct {
+		info CourseInfo
+		err  error
+	}, len(urls))
 
-	ctx, cancel = context.WithTimeout(ctx, 150*time.Minute)
-	defer cancel()
+	// Create a semaphore to limit concurrent browsers
+	sem := make(chan struct{}, 5) // Limit to 5 concurrent browsers
 
-	var courses []CourseInfo
-	rateLimiter := time.NewTicker(4 * time.Second)
+	// Create rate limiter for Gemini API
+	rateLimiter := time.NewTicker(100 * time.Millisecond) // 600 RPM
 	defer rateLimiter.Stop()
 
 	totalPlaylists := len(urls)
 	log.Printf("Starting to process %d playlists...", totalPlaylists)
 
+	// Launch goroutines for each playlist
 	for i, playlist := range urls {
-		// Wait for rate limit
-		<-rateLimiter.C
+		i, playlist := i, playlist // Create new variables for goroutine
 
-		progress := float64(i) / float64(totalPlaylists) * 100
-		log.Printf("Processing playlist %d/%d (%.1f%%): %s",
-			i+1, totalPlaylists, progress, playlist.URL)
+		go func() {
+			// Acquire semaphore
+			sem <- struct{}{}
+			defer func() { <-sem }() // Release semaphore when done
 
-		var retries int
-		const maxRetries = 3
-		for {
-			courseInfo, err := processCoursePlaylist(ctx, playlist, apiKey)
-			if err != nil {
-				if strings.Contains(err.Error(), "429") && retries < maxRetries {
-					retries++
-					waitTime := time.Duration(retries*4) * time.Second
-					log.Printf("Rate limit hit, waiting %v seconds before retry %d/%d",
-						waitTime.Seconds(), retries, maxRetries)
-					time.Sleep(waitTime)
-					continue
+			// Create new browser context for this goroutine
+			ctx, cancel := chromedp.NewContext(context.Background())
+			defer cancel()
+
+			ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+
+			progress := float64(i) / float64(totalPlaylists) * 100
+			log.Printf("Processing playlist %d/%d (%.1f%%): %s",
+				i+1, totalPlaylists, progress, playlist.URL)
+
+			var retries int
+			const maxRetries = 3
+			var courseInfo CourseInfo
+			var err error
+
+			for retries < maxRetries {
+				// Wait for rate limit
+				<-rateLimiter.C
+
+				courseInfo, err = processCoursePlaylist(ctx, playlist, apiKey)
+				if err != nil {
+					if strings.Contains(err.Error(), "429") && retries < maxRetries-1 {
+						retries++
+						waitTime := time.Duration(retries*4) * time.Second
+						log.Printf("Rate limit hit, waiting %v seconds before retry %d/%d",
+							waitTime.Seconds(), retries, maxRetries)
+						time.Sleep(waitTime)
+						continue
+					}
+					log.Printf("Error processing %s: %v", playlist.URL, err)
+					break
 				}
-				log.Printf("Error processing %s: %v", playlist.URL, err)
 				break
 			}
-			courses = append(courses, courseInfo)
-			log.Printf("Successfully processed playlist %d/%d: %s (%d videos)",
-				i+1, totalPlaylists, courseInfo.Title, len(courseInfo.Videos))
-			break
+
+			results <- struct {
+				info CourseInfo
+				err  error
+			}{courseInfo, err}
+		}()
+	}
+
+	// Collect results
+	var courses []CourseInfo
+	for i := 0; i < len(urls); i++ {
+		result := <-results
+		if result.err == nil {
+			courses = append(courses, result.info)
+			log.Printf("Successfully processed playlist: %s (%d videos)",
+				result.info.Title, len(result.info.Videos))
 		}
 	}
 
@@ -320,7 +355,7 @@ func processCoursePlaylist(ctx context.Context, playlist PlaylistURL, apiKey str
 	var videos []VideoInfo
 	err := chromedp.Run(ctx,
 		chromedp.Navigate("https://www.youtube.com"+playlist.URL),
-		chromedp.Sleep(2*time.Second),
+		chromedp.Sleep(1*time.Second),
 		scrollPlaylistVideos(&videos),
 		chromedp.OuterHTML("html", &pageHTML),
 	)
