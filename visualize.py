@@ -170,3 +170,110 @@ avg_final_retention = np.mean(final_retentions)
 print("\n" + "="*60)
 print(f"Average Final Retention Across All Courses: {avg_final_retention:.1f}%")
 print("="*60)
+
+def calculate_stats(df):
+    # Calculate final retentions
+    final_retentions = []
+    for course in df['CourseTitle'].unique():
+        course_data = df[df['CourseTitle'] == course].sort_values('Position')
+        first_views = course_data.iloc[0]['ViewCount']
+        retention = [100]
+        for _, row in course_data.iloc[1:].iterrows():
+            raw_retention = (row['ViewCount'] / first_views) * 100
+            capped_retention = min(raw_retention, retention[-1])
+            retention.append(capped_retention)
+        final_retentions.append(retention[-1])
+    
+    return {
+        'avg_final_retention': np.mean(final_retentions),
+        'median_final_retention': np.median(final_retentions),
+        'total_courses': len(df['CourseTitle'].unique()),
+        'total_videos': len(df)
+    }
+
+def get_html_style():
+    return """
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+                         "Helvetica Neue", Arial, sans-serif;
+        }
+        .container { 
+            max-width: 1800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            font-family: inherit;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-value { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #2c3e50; 
+        }
+        .stat-label { 
+            font-size: 14px; 
+            color: #7f8c8d; 
+            margin-top: 5px; 
+        }
+    </style>
+    """
+
+def get_stats_html(stats):
+    return f"""
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-value">{stats['avg_final_retention']:.1f}%</div>
+            <div class="stat-label">Average Final Retention</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{stats['median_final_retention']:.1f}%</div>
+            <div class="stat-label">Median Final Retention</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{stats['total_courses']}</div>
+            <div class="stat-label">Total Courses</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{stats['total_videos']}</div>
+            <div class="stat-label">Total Videos</div>
+        </div>
+    </div>
+    """
+
+def save_visualization(fig, stats):
+    plotly_html = fig.to_html(full_html=False, include_plotlyjs=True)
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>MIT OCW Course Analysis</title>
+        {get_html_style()}
+    </head>
+    <body>
+        <div class="container">
+            {get_stats_html(stats)}
+            {plotly_html}
+        </div>
+    </body>
+    </html>
+    """
+    
+    with open("index.html", "w", encoding='utf-8') as f:
+        f.write(html_content)
+
+# Calculate stats and save visualization
+stats = calculate_stats(df)
+save_visualization(fig, stats)
