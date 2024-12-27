@@ -3,16 +3,20 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 
+# Add after imports
+plotly_template = "plotly_dark"
+
 # Read the CSV
 df = pd.read_csv('mit_courses_2024-12-26_213033.csv')
 
 # Create figure with subplots
-fig = make_subplots(rows=3, cols=1, 
-                    subplot_titles=('Raw View Counts by Course',
-                                  'View Counts as Percentage of First Video',
-                                  'Maximum Possible Retention Since First Video'),
-                    vertical_spacing=0.1,
-                    row_heights=[1200, 1200, 1200])
+fig = make_subplots(
+    rows=3, cols=1, 
+    subplot_titles=('Raw View Counts by Course',
+                   'View Counts as Percentage of First Video',
+                   'Maximum Possible Retention Since First Video'),
+    vertical_spacing=0.1,
+    row_heights=[1200, 1200, 1200])
 
 # Group by CourseTitle
 for course in df['CourseTitle'].unique():
@@ -107,8 +111,11 @@ fig.add_trace(
     row=3, col=1
 )
 
-# Update layout
+# Update layout to use dark theme
 fig.update_layout(
+    template=plotly_template,
+    paper_bgcolor='#1e1e1e',
+    plot_bgcolor='#1e1e1e',
     title_text="MIT OCW Course Video Views Analysis",
     height=1200,
     showlegend=True,
@@ -117,7 +124,8 @@ fig.update_layout(
         y=0.99,
         xanchor="left",
         x=1.0
-    )
+    ),
+    font=dict(color='#ffffff')
 )
 
 fig.update_xaxes(title_text="Video Position in Course", row=3, col=1)
@@ -197,12 +205,15 @@ def get_html_style():
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
                          "Helvetica Neue", Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
         }
         .container { 
             max-width: 1800px; 
             margin: 0 auto; 
             padding: 20px;
-            font-family: inherit;
+            background-color: #1e1e1e;
         }
         .stats-grid {
             display: grid;
@@ -211,20 +222,21 @@ def get_html_style():
             margin-bottom: 30px;
         }
         .stat-box {
-            background: #f8f9fa;
+            background: #2d2d2d;
             border-radius: 8px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #3d3d3d;
         }
         .stat-value { 
             font-size: 24px; 
             font-weight: bold; 
-            color: #2c3e50; 
+            color: #58a6ff; 
         }
         .stat-label { 
             font-size: 14px; 
-            color: #7f8c8d; 
+            color: #c9d1d9; 
             margin-top: 5px; 
         }
     </style>
@@ -257,9 +269,10 @@ def save_visualization(fig, stats):
     
     html_content = f"""
     <!DOCTYPE html>
-    <html>
+    <html data-theme="dark">
     <head>
         <title>MIT OCW Course Analysis</title>
+        <meta name="color-scheme" content="dark">
         {get_html_style()}
     </head>
     <body>
