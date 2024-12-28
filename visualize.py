@@ -28,7 +28,7 @@ for course in df['CourseTitle'].unique():
                   y=course_data['ViewCount'],
                   name=course,
                   mode='lines+markers',
-                  showlegend=True),
+                  showlegend=False),
         row=1, col=1
     )
     
@@ -78,7 +78,7 @@ fig.add_trace(
               name='Median',
               mode='lines',
               line=dict(color='black', width=2),
-              showlegend=True),
+              showlegend=False),
     row=2, col=1
 )
 
@@ -107,7 +107,7 @@ fig.add_trace(
               name='Median Retention',
               mode='lines',
               line=dict(color='black', width=2),
-              showlegend=True),
+              showlegend=False),
     row=3, col=1
 )
 
@@ -116,14 +116,13 @@ fig.update_layout(
     template=plotly_template,
     paper_bgcolor='#1e1e1e',
     plot_bgcolor='#1e1e1e',
-    title_text="MIT OCW Course Video Views Analysis",
     height=1200,
-    showlegend=True,
+    showlegend=False,
     legend=dict(
         yanchor="top",
         y=0.99,
-        xanchor="left",
-        x=1.0
+        xanchor="right",
+        x=0
     ),
     font=dict(color='#ffffff')
 )
@@ -239,6 +238,64 @@ def get_html_style():
             color: #c9d1d9; 
             margin-top: 5px; 
         }
+        .kaggle-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 30px;
+        }
+        
+        .kaggle-card {
+            display: flex;
+            align-items: center;
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            border: 1px solid #3d3d3d;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .kaggle-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border-color: #58a6ff;
+        }
+        
+        .kaggle-logo {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+        }
+        
+        .kaggle-text {
+            font-size: 16px;
+            color: #c9d1d9;
+        }
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+            margin: 20px 0 40px 0;
+        }
+        .title-container {
+            text-align: center;
+            margin: 20px 0 40px 0;
+        }
+        .main-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #8b949e;
+            font-weight: normal;
+        }
     </style>
     """
 
@@ -264,6 +321,19 @@ def get_stats_html(stats):
     </div>
     """
 
+def get_kaggle_card():
+    kaggle_svg = '''<svg class="kaggle-logo" viewBox="0 0 24 24" fill="#20BEFF"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.33-.246.495-.246h3.239c.144 0 .236.06.285.18.046.149.034.255-.036.315l-6.555 6.344 6.836 8.507c.095.104.117.208.07.358"/></svg>'''
+    
+    return f"""
+    <div class="kaggle-wrapper">
+        <a href="https://www.kaggle.com/datasets/jorgoose/mit-opencourseware-youtube-course-data" 
+           class="kaggle-card" target="_blank" rel="noopener">
+            {kaggle_svg}
+            <span class="kaggle-text">View Dataset on Kaggle</span>
+        </a>
+    </div>
+    """
+# Update save_visualization() to move title
 def save_visualization(fig, stats):
     plotly_html = fig.to_html(full_html=False, include_plotlyjs=True)
     
@@ -271,14 +341,19 @@ def save_visualization(fig, stats):
     <!DOCTYPE html>
     <html data-theme="dark">
     <head>
-        <title>MIT OCW Course Analysis</title>
+        <title>MIT OpenCourseWare YouTube Viewer Data</title>
         <meta name="color-scheme" content="dark">
         {get_html_style()}
     </head>
     <body>
         <div class="container">
+            <div class="title-container">
+                <h1 class="main-title">MIT OpenCourseWare YouTube Viewerership Data</h1>
+                <div class="subtitle">View counts and retention across video lectures</div>
+            </div>
             {get_stats_html(stats)}
             {plotly_html}
+            {get_kaggle_card()}
         </div>
     </body>
     </html>
