@@ -132,9 +132,6 @@ fig.update_yaxes(title_text="Views", row=1, col=1)
 fig.update_yaxes(title_text="Percentage of First Video Views", row=2, col=1)
 fig.update_yaxes(title_text="Retention Percentage", row=3, col=1)
 
-# Save the plot
-fig.write_html("mit_course_views_analysis.html")
-
 # Debug output for one course
 example_course = df['CourseTitle'].unique()[0]
 course_data = df[df['CourseTitle'] == example_course].sort_values('Position')
