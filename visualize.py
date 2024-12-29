@@ -348,7 +348,7 @@ def save_visualization(fig, stats):
     <body>
         <div class="container">
             <div class="title-container">
-                <h1 class="main-title">MIT OpenCourseWare YouTube Viewerership Data</h1>
+                <h1 class="main-title">MIT OpenCourseWare YouTube Viewership Data</h1>
                 <div class="subtitle">View counts and retention across video lectures</div>
             </div>
             {get_stats_html(stats)}
